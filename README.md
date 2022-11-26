@@ -8,6 +8,7 @@ Included, in this repo, is a single application "flaggen", which displays the Pr
 
 It is the wish of this author, that this tribute, be run in as many places as is possible, with the dedication showing. A folder of screenshots, and photos is available in tributes/. Provide a pull request, with a photo and description of what is running, and it will be included here.
 
+It is requested, that if you post this, please use the hashtag #16bitProgress on whatever social media you may choose, and add your own message regarding the senseless loss of life to hate.
 
 ## Notes
 There's relatively easy modified codepaths for both the standard 6 color Pride flag, and the Unity Progress flag. Pull requests to implement more flags and features will be considered on a case by case basis.
