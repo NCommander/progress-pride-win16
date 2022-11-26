@@ -2,6 +2,8 @@
 
 This was written as a charity livestream event, to remember those lost at Club Q, in Colorado Springs, on November 19th, 2022, and all others who were lost to gun violence the 611 shootings this year.
 
+The livestream VoD is available at https://youtu.be/vY-EM1IcZd8; if there are any planned updates, it will be announced.
+
 Included, in this repo, is a single application "flaggen", which displays the Progress Pride flag (with intersex circle), coded in C, and compiled with Visual C++ 1.52 for 16-bit Windows. It should run without modification on any system that can run Windows 3.x, as well as all 32-bit versions going forward. Perhaps we'll create a 64-bit version together.
 
 ![Progress Pride running on 86Box](/tributes/01_ncommander_86box_coded.png)
