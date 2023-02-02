@@ -1,5 +1,15 @@
 #include "resource.h"
 
+#ifndef WINVER
+/* Pre-3.1 windows.h */
+
+#define CALLBACK _far _pascal
+typedef unsigned int UINT;
+typedef UINT WPARAM;
+typedef LONG LPARAM;
+
+#endif
+
 int PASCAL WinMain(HANDLE, HANDLE, LPSTR, int);
 BOOL InitApplication(HANDLE);
 BOOL InitInstance(HANDLE, int);
