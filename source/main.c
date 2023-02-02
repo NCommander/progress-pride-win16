@@ -24,11 +24,7 @@
 #include "flaggen.h"            /* specific to this program          */
 
 HANDLE hInst;               /* current instance              */
-int gPixelsPerStripe = 0;
-int gPixelsPerChevron = 0;
-int gWindowHalfwayXPos = 0;
-int gWindowHalfwayYPos = 0;
-RECT gAppWindowSize;
+
 
 /****************************************************************************
 
@@ -122,7 +118,7 @@ HANDLE hInstance;                  /* current instance       */
     wc.hCursor = LoadCursor(NULL, IDC_ARROW);
     wc.hbrBackground = GetStockObject(WHITE_BRUSH);
     wc.lpszMenuName =  "GenericMenu";   /* Name of menu resource in .RC file. */
-    wc.lpszClassName = "GenericWClass"; /* Name used in call to CreateWindow. */
+    wc.lpszClassName = "FlagGenWClass"; /* Name used in call to CreateWindow. */
 
     /* Register the window class and return success/failure code. */
 
@@ -162,7 +158,7 @@ BOOL InitInstance(hInstance, nCmdShow)
     /* Create a main window for this application instance.  */
 
     hWnd = CreateWindow(
-        "GenericWClass",                /* See RegisterClass() call.          */
+        "FlagGenWClass",                /* See RegisterClass() call.          */
         "Flag Generator",   /* Text for window title bar.         */
         WS_OVERLAPPEDWINDOW,            /* Window style.                      */
         CW_USEDEFAULT,                  /* Default horizontal position.       */
@@ -204,10 +200,11 @@ int stripeSize;
 	return hbrOld;
 }
 
-void DrawChevron(hdc, hbr, xOffset, yOffset, centerOffset)
+void DrawChevron(hdc, hbr, rect, gPixelsPerChevron, gWindowHalfwayXPos, gWindowHalfwayYPos, xOffset, yOffset, centerOffset)
 HDC hdc;
 HBRUSH hbr;
-int xOffset, yOffset, centerOffset;
+RECT *rect;
+int gPixelsPerChevron, gWindowHalfwayXPos, gWindowHalfwayYPos, xOffset, yOffset, centerOffset;
 {
     int pointDrawOrder = 0;
     int pointsToDraw = 5;
@@ -251,30 +248,36 @@ int xOffset, yOffset, centerOffset;
 
 	if (yOffset == 0) {
 		chevronPoints[0].x = xOffset;
-		chevronPoints[0].y = gAppWindowSize.bottom - yOffset;
+		chevronPoints[0].y = rect->bottom - yOffset;
 	
 		chevronPoints[1].x = gPixelsPerChevron + xOffset;
-		chevronPoints[1].y = gAppWindowSize.bottom - yOffset;
+		chevronPoints[1].y = rect->bottom - yOffset;
     } else {
 		chevronPoints[0].x = xOffset;
-		chevronPoints[0].y = gAppWindowSize.bottom - yOffset;
+		chevronPoints[0].y = rect->bottom - yOffset;
 
 		chevronPoints[1].x = xOffset;
-		chevronPoints[1].y = gAppWindowSize.bottom - yOffset + gPixelsPerChevron;		
+		chevronPoints[1].y = rect->bottom - yOffset + gPixelsPerChevron;		
 	}
 
     Polygon(hdc, chevronPoints, /*sizeof(chevronPoints)/sizeof(POINT) */ 5);
 }
 
-void DrawFlag(hwnd)
-HWND hwnd;
+void DrawFlag(HDC hdc, RECT *rect)
+//HWND hwnd;
 {
-	HDC hdc;
-	PAINTSTRUCT ps;
-
 	HPEN hPenNull, hPenBlack;
     HBRUSH hbrRed, hbrOrange, hbrYellow, hbrGreen, hbrBlue, hbrPurple, hbrOld;
     HBRUSH hbrBrown, hbrBlack, hbrLBlue, hbrPink, hbrWhite, hbrPurple2;
+    
+    int gPixelsPerStripe;
+	int gPixelsPerChevron;
+	int gWindowHalfwayXPos;
+	int gWindowHalfwayYPos;
+	
+	int circleThickness;
+
+
 
     /* Initialize pens */
     hPenNull = GetStockObject(NULL_PEN);
@@ -287,52 +290,52 @@ HWND hwnd;
 	hbrGreen = CreateSolidBrush( RGB( 0, 255, 0 ));
 	hbrBlue = CreateSolidBrush( RGB( 0, 0, 255 ));
 	hbrPurple = CreateSolidBrush( RGB( 255, 0, 255 ));
-	hbrBlack = CreateSolidBrush( RGB( 0, 0, 0 )); 
+	hbrBlack = GetStockObject(BLACK_BRUSH); // CreateSolidBrush( RGB( 0, 0, 0 )); 
 	hbrBrown = CreateSolidBrush( RGB( 128, 64, 0));
 	hbrLBlue = CreateSolidBrush( RGB( 0, 255, 255 ));
 	hbrPink = CreateSolidBrush( RGB( 255, 128, 255 ));
-	hbrWhite = CreateSolidBrush( RGB( 255, 255, 255 ));
+	hbrWhite = GetStockObject(WHITE_BRUSH); // CreateSolidBrush( RGB( 255, 255, 255 ));
 	hbrPurple2 = CreateSolidBrush( RGB( 64, 0, 128 ));
 
 	/* Get size of current window */
-    GetClientRect(hwnd, &gAppWindowSize);
-    gPixelsPerStripe = ((int)gAppWindowSize.bottom/6)+1;
-	gPixelsPerChevron = ((int)gAppWindowSize.right/10)+1;
-	gWindowHalfwayXPos = ((int)gAppWindowSize.right/2)+1;
-	gWindowHalfwayYPos = ((int)gAppWindowSize.bottom/2)+1;
-	
-	hdc = BeginPaint(hwnd, &ps);
+    gPixelsPerStripe = (rect->bottom/6)+1;
+	gPixelsPerChevron = (rect->right/10)+1;
+	gWindowHalfwayXPos = (rect->right/2)+1;
+	gWindowHalfwayYPos = (rect->bottom/2)+1;
 	
 	/* Sets Null pen (disables border on rectangles */
 	SelectObject(hdc, hPenNull);
     
     /* Draw each stripe */
-    hbrOld = DrawStripe(hdc, hbrRed, &gAppWindowSize, gPixelsPerStripe, 0);
-    DrawStripe(hdc, hbrOrange, &gAppWindowSize, gPixelsPerStripe, 1);
-	DrawStripe(hdc, hbrYellow, &gAppWindowSize, gPixelsPerStripe, 2);
-	DrawStripe(hdc, hbrGreen, &gAppWindowSize, gPixelsPerStripe, 3);
-	DrawStripe(hdc, hbrBlue, &gAppWindowSize, gPixelsPerStripe, 4);
-	DrawStripe(hdc, hbrPurple, &gAppWindowSize, gPixelsPerStripe, 5);
+    hbrOld = DrawStripe(hdc, hbrRed, rect, gPixelsPerStripe, 0);
+    DrawStripe(hdc, hbrOrange, rect, gPixelsPerStripe, 1);
+	DrawStripe(hdc, hbrYellow, rect, gPixelsPerStripe, 2);
+	DrawStripe(hdc, hbrGreen, rect, gPixelsPerStripe, 3);
+	DrawStripe(hdc, hbrBlue, rect, gPixelsPerStripe, 4);
+	DrawStripe(hdc, hbrPurple, rect, gPixelsPerStripe, 5);
 
 #if 0
 	// Unity Flag	
-	DrawChevron(hdc, hbrBlack, gPixelsPerChevron, 0, 0);
-	DrawChevron(hdc, hbrBrown, 0, 0, gPixelsPerChevron);
-	DrawChevron(hdc, hbrLBlue, 0, gPixelsPerChevron, gPixelsPerChevron*2);
-	DrawChevron(hdc, hbrPink, 0, gPixelsPerChevron*2, gPixelsPerChevron*3);
-	DrawChevron(hdc, hbrWhite, 0, gPixelsPerChevron*3, gPixelsPerChevron*4);
+	DrawChevron(hdc, hbrBlack, rect, gPixelsPerChevron, gWindowHalfwayXPos, gWindowHalfwayYPos, gPixelsPerChevron, 0, 0);
+	DrawChevron(hdc, hbrBrown, rect, gPixelsPerChevron, gWindowHalfwayXPos, gWindowHalfwayYPos, 0, 0, gPixelsPerChevron);
+	DrawChevron(hdc, hbrLBlue, rect, gPixelsPerChevron, gWindowHalfwayXPos, gWindowHalfwayYPos, 0, gPixelsPerChevron, gPixelsPerChevron*2);
+	DrawChevron(hdc, hbrPink, rect, gPixelsPerChevron, gWindowHalfwayXPos, gWindowHalfwayYPos, 0, gPixelsPerChevron*2, gPixelsPerChevron*3);
+	DrawChevron(hdc, hbrWhite, rect, gPixelsPerChevron, gWindowHalfwayXPos, gWindowHalfwayYPos, 0, gPixelsPerChevron*3, gPixelsPerChevron*4);
 #endif
 
-	gPixelsPerChevron = ((int)gAppWindowSize.right/16)+1;
-    DrawChevron(hdc, hbrBlack, gPixelsPerChevron*5, 0, 0);
-	DrawChevron(hdc, hbrBrown, gPixelsPerChevron*4, 0, gPixelsPerChevron);
-	DrawChevron(hdc, hbrLBlue, gPixelsPerChevron*3, 0, gPixelsPerChevron*2);
-	DrawChevron(hdc, hbrPink, gPixelsPerChevron*2, 0, gPixelsPerChevron*3);
-	DrawChevron(hdc, hbrWhite, gPixelsPerChevron, 0, gPixelsPerChevron*4);
-    DrawChevron(hdc, hbrYellow, 0, 0, gPixelsPerChevron*5);
-    DrawChevron(hdc, hbrYellow, 0, 0, gPixelsPerChevron*6);
-    DrawChevron(hdc, hbrYellow, 0, 0, gPixelsPerChevron*7);
+	gPixelsPerChevron = (rect->right/16)+1;
+    DrawChevron(hdc, hbrBlack, rect, gPixelsPerChevron, gWindowHalfwayXPos, gWindowHalfwayYPos, gPixelsPerChevron*5, 0, 0);
+	DrawChevron(hdc, hbrBrown, rect, gPixelsPerChevron, gWindowHalfwayXPos, gWindowHalfwayYPos, gPixelsPerChevron*4, 0, gPixelsPerChevron);
+	DrawChevron(hdc, hbrLBlue, rect, gPixelsPerChevron, gWindowHalfwayXPos, gWindowHalfwayYPos, gPixelsPerChevron*3, 0, gPixelsPerChevron*2);
+	DrawChevron(hdc, hbrPink, rect, gPixelsPerChevron, gWindowHalfwayXPos, gWindowHalfwayYPos, gPixelsPerChevron*2, 0, gPixelsPerChevron*3);
+	DrawChevron(hdc, hbrWhite, rect, gPixelsPerChevron, gWindowHalfwayXPos, gWindowHalfwayYPos, gPixelsPerChevron, 0, gPixelsPerChevron*4);
+    DrawChevron(hdc, hbrYellow, rect, gPixelsPerChevron, gWindowHalfwayXPos, gWindowHalfwayYPos, 0, 0, gPixelsPerChevron*5);
+    DrawChevron(hdc, hbrYellow, rect, gPixelsPerChevron, gWindowHalfwayXPos, gWindowHalfwayYPos, 0, 0, gPixelsPerChevron*6);
+    DrawChevron(hdc, hbrYellow, rect, gPixelsPerChevron, gWindowHalfwayXPos, gWindowHalfwayYPos, 0, 0, gPixelsPerChevron*7);
     
+
+    
+    circleThickness = 10;
     SelectObject(hdc, hbrPurple2);
     Ellipse( hdc,
     		gPixelsPerChevron/2,
@@ -342,10 +345,10 @@ HWND hwnd;
     
     SelectObject(hdc, hbrYellow);
     Ellipse( hdc,
-    		(gPixelsPerChevron/2)+10,
-    		(gWindowHalfwayYPos-(gPixelsPerChevron))+10,
-    		(gPixelsPerChevron*2)-10,
-    		(gWindowHalfwayYPos+(gPixelsPerChevron))-10);
+    		(gPixelsPerChevron/2)+circleThickness,
+    		(gWindowHalfwayYPos-(gPixelsPerChevron))+circleThickness,
+    		(gPixelsPerChevron*2)-circleThickness,
+    		(gWindowHalfwayYPos+(gPixelsPerChevron))-circleThickness);
 
 	/* Deallocate brushes */
 	SelectObject(hdc, hbrOld);
@@ -355,14 +358,32 @@ HWND hwnd;
 	DeleteObject(hbrGreen);
 	DeleteObject(hbrBlue);
 	DeleteObject(hbrPurple);
-	DeleteObject(hbrBlack);
+	// DeleteObject(hbrBlack);
 	DeleteObject(hbrBrown);
 	DeleteObject(hbrLBlue);
 	DeleteObject(hbrPink);
-	DeleteObject(hbrWhite);
+	// DeleteObject(hbrWhite);
 	DeleteObject(hbrPurple2);
 
+}
+
+void PaintWindow(HWND hwnd)
+{
+	HDC hdc;
+	PAINTSTRUCT ps;
+	RECT gAppWindowSize;
+
+	
+	/* Get size of current window */
+    GetClientRect(hwnd, &gAppWindowSize);
+	
+	hdc = BeginPaint(hwnd, &ps);
+	
+	DrawFlag(hdc, &gAppWindowSize);
+	
+
 	EndPaint(hwnd, &ps);
+
 }
 
 long CALLBACK __export MainWndProc(hWnd, message, wParam, lParam)
@@ -374,7 +395,7 @@ LPARAM lParam;                  /* additional information        */
     switch (message)
     {
         case WM_PAINT:
-        	DrawFlag(hWnd);
+        	PaintWindow(hWnd);
         	break;
 
 		case WM_SIZE:
